@@ -105,7 +105,7 @@ local function updateDropdown()
 
 		btn.MouseButton1Click:Connect(function()
 			playerDropdown.Text = "🎯 " .. plr.Name
-			getgenv().AccountToDuplicateTo = plr.Name:lower()
+			getgenv().AccountToDuplicateTo = plr.Name
 			dropdownFrame.Visible = false
 			dropdownFrame.Size = UDim2.new(0, 0, 0, 0)
 		end)
