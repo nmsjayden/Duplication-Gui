@@ -1,0 +1,210 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+getgenv().AccountToDuplicateTo = nil
+getgenv().DuplicationAmount = nil
+
+-- ScreenGui
+local gui = Instance.new("ScreenGui", PlayerGui)
+gui.Name = "DuplicationGUI"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Toggle Button
+local toggle = Instance.new("TextButton", gui)
+toggle.Size = UDim2.new(0, 120, 0, 40)
+toggle.Position = UDim2.new(0, 10, 0.5, -20)
+toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+toggle.Text = "📦 Duplication"
+toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggle.Font = Enum.Font.GothamBold
+toggle.TextSize = 14
+toggle.Draggable = true
+toggle.Active = true
+Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 8)
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 340, 0, 270)
+frame.Position = UDim2.new(0.5, -170, 0.5, -150)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+frame.Visible = false
+frame.Parent = gui
+
+local padding = Instance.new("UIPadding", frame)
+padding.PaddingTop = UDim.new(0, 10)
+padding.PaddingLeft = UDim.new(0, 10)
+padding.PaddingRight = UDim.new(0, 10)
+padding.PaddingBottom = UDim.new(0, 10)
+
+local layout = Instance.new("UIListLayout", frame)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0, 10)
+
+-- Title
+local title = Instance.new("TextLabel", frame)
+title.Text = "🔁 Duplication GUI"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+
+-- Player Dropdown Button
+local playerDropdown = Instance.new("TextButton", frame)
+playerDropdown.Size = UDim2.new(1, 0, 0, 35)
+playerDropdown.Text = "Select Target Player"
+playerDropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+playerDropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
+playerDropdown.Font = Enum.Font.Gotham
+playerDropdown.TextSize = 14
+Instance.new("UICorner", playerDropdown).CornerRadius = UDim.new(0, 6)
+
+-- Scrollable Dropdown Container
+local dropdownFrame = Instance.new("ScrollingFrame")
+dropdownFrame.Size = UDim2.new(0, 0, 0, 0) -- initial zero size, will set later
+dropdownFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+dropdownFrame.ScrollBarThickness = 6
+dropdownFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+dropdownFrame.ClipsDescendants = true
+dropdownFrame.Visible = false
+dropdownFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+dropdownFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+dropdownFrame.ZIndex = 50 -- on top
+dropdownFrame.Parent = gui
+Instance.new("UICorner", dropdownFrame).CornerRadius = UDim.new(0, 6)
+
+-- Dropdown List Layout
+local dropdownList = Instance.new("UIListLayout", dropdownFrame)
+dropdownList.SortOrder = Enum.SortOrder.LayoutOrder
+dropdownList.Padding = UDim.new(0, 4)
+
+-- Update dropdown items
+local function updateDropdown()
+	-- Remove only buttons
+	for _, child in ipairs(dropdownFrame:GetChildren()) do
+		if child:IsA("TextButton") then child:Destroy() end
+	end
+
+	local count = 0
+	for _, plr in ipairs(Players:GetPlayers()) do
+		count += 1
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(1, 0, 0, 30)
+		btn.BackgroundColor3 = Color3.fromRGB(60, 60, 70)
+		btn.Text = plr.Name
+		btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+		btn.Font = Enum.Font.Gotham
+		btn.TextSize = 14
+		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+		btn.Parent = dropdownFrame
+
+		btn.MouseButton1Click:Connect(function()
+			playerDropdown.Text = "🎯 " .. plr.Name
+			getgenv().AccountToDuplicateTo = plr.Name:lower()
+			dropdownFrame.Visible = false
+			dropdownFrame.Size = UDim2.new(0, 0, 0, 0)
+		end)
+	end
+
+	-- Cap visible height
+	local totalHeight = count * 34
+	local visibleHeight = math.min(totalHeight, 150)
+	dropdownFrame.Size = UDim2.new(dropdownFrame.Size.X.Scale, dropdownFrame.Size.X.Offset, 0, visibleHeight)
+end
+
+local function updateDropdownPosition()
+	local absPos = playerDropdown.AbsolutePosition
+	local absSize = playerDropdown.AbsoluteSize
+	dropdownFrame.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y)
+	dropdownFrame.Size = UDim2.new(0, absSize.X, dropdownFrame.Size.Y.Scale, dropdownFrame.Size.Y.Offset)
+end
+
+-- Toggle dropdown visibility
+playerDropdown.MouseButton1Click:Connect(function()
+	if dropdownFrame.Visible then
+		dropdownFrame.Visible = false
+		dropdownFrame.Size = UDim2.new(0, 0, 0, 0)
+	else
+		updateDropdown()
+		updateDropdownPosition()
+		dropdownFrame.Visible = true
+	end
+end)
+
+-- Amount Box
+local amountBox = Instance.new("TextBox", frame)
+amountBox.Size = UDim2.new(1, 0, 0, 35)
+amountBox.Text = ""
+amountBox.PlaceholderText = "Enter duplication amount (e.g. 3500)"
+amountBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+amountBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+amountBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+amountBox.Font = Enum.Font.Gotham
+amountBox.TextSize = 14
+amountBox.ClearTextOnFocus = false
+Instance.new("UICorner", amountBox).CornerRadius = UDim.new(0, 6)
+
+-- Status
+local status = Instance.new("TextLabel", frame)
+status.Size = UDim2.new(1, 0, 0, 30)
+status.BackgroundTransparency = 1
+status.Text = ""
+status.Font = Enum.Font.Gotham
+status.TextSize = 14
+status.TextColor3 = Color3.fromRGB(100, 255, 100)
+
+-- Start Button
+local startBtn = Instance.new("TextButton", frame)
+startBtn.Size = UDim2.new(1, 0, 0, 40)
+startBtn.Text = "🚀 Start Duplication"
+startBtn.BackgroundColor3 = Color3.fromRGB(60, 130, 255)
+startBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+startBtn.Font = Enum.Font.GothamBold
+startBtn.TextSize = 16
+Instance.new("UICorner", startBtn).CornerRadius = UDim.new(0, 8)
+
+-- Execute script
+startBtn.MouseButton1Click:Connect(function()
+	local target = getgenv().AccountToDuplicateTo
+	local amt = tonumber(amountBox.Text)
+
+	if not target then
+		status.Text = "⚠️ Select a player first."
+		status.TextColor3 = Color3.fromRGB(255, 100, 100)
+		return
+	end
+
+	if not amt or amt <= 0 then
+		status.Text = "⚠️ Enter valid duplication amount."
+		status.TextColor3 = Color3.fromRGB(255, 100, 100)
+		return
+	end
+
+	getgenv().DuplicationAmount = amt
+	status.Text = "Running duplication..."
+	status.TextColor3 = Color3.fromRGB(255, 255, 150)
+
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/notpoiu/Scripts/refs/heads/main/doors/revives.lua"))()
+
+	status.Text = "✅ Duplication executed!"
+	status.TextColor3 = Color3.fromRGB(100, 255, 100)
+end)
+
+-- Toggle GUI on/off
+toggle.MouseButton1Click:Connect(function()
+	frame.Visible = not frame.Visible
+	if dropdownFrame.Visible then
+		dropdownFrame.Visible = false
+		dropdownFrame.Size = UDim2.new(0, 0, 0, 0)
+	end
+end)
+
+-- Load dropdown after slight delay (helps on mobile)
+task.delay(1.5, function()
+	updateDropdown()
+end)
