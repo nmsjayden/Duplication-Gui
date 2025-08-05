@@ -169,8 +169,6 @@ startBtn.TextSize = 16
 Instance.new("UICorner", startBtn).CornerRadius = UDim.new(0, 8)
 
 -- Execute script
--- Execute script
--- Execute script
 startBtn.MouseButton1Click:Connect(function()
 	local target = getgenv().AccountToDuplicateTo
 	local amt = tonumber(amountBox.Text)
@@ -224,4 +222,3 @@ Players.PlayerRemoving:Connect(function(plr)
 		playerDropdown.Text = "Select Target Player"
 	end
 end)
-
