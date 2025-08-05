@@ -170,6 +170,7 @@ Instance.new("UICorner", startBtn).CornerRadius = UDim.new(0, 8)
 
 -- Execute script
 -- Execute script
+-- Execute script
 startBtn.MouseButton1Click:Connect(function()
 	local target = getgenv().AccountToDuplicateTo
 	local amt = tonumber(amountBox.Text)
@@ -214,12 +215,13 @@ end)
 
 -- Load dropdown after slight delay (helps on mobile)
 task.delay(1.5, function()
+	updateDropdown()
+end)
 -- Clear selected player if they leave the game
 Players.PlayerRemoving:Connect(function(plr)
-	if getgenv().AccountToDuplicateTo and plr.Name == getgenv().AccountToDuplicateTo then
+	if getgenv().AccountToDuplicateTo == plr.Name then
 		getgenv().AccountToDuplicateTo = nil
 		playerDropdown.Text = "Select Target Player"
 	end
 end)
-	updateDropdown()
-end)
+
